@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>教师作业批改助手 — 产品说明书</title>
+<style>
+  @media print { body { margin:0; } h2 { page-break-after:avoid; } table { page-break-inside:avoid; } .page-break { page-break-before:always; } }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; font-size:12.5px; line-height:1.82; color:#1a1a2e; max-width:210mm; margin:0 auto; padding:28px 22px; background:#f8f9fa; }
+  .report { background:#fff; padding:32px 36px; box-shadow:0 2px 12px rgba(0,0,0,0.08); }
+  .cover { text-align:center; padding:44px 0 30px; border-bottom:3px double #1e40af; margin-bottom:30px; }
+  .cover h1 { font-size:24px; color:#1e40af; margin-bottom:10px; letter-spacing:2px; }
+  .cover .subtitle { font-size:14px; color:#6b7280; margin-bottom:4px; }
+  .cover .meta { font-size:11px; color:#9ca3af; margin-top:22px; line-height:2.1; }
+  h2 { font-size:17px; color:#1e40af; border-left:4px solid #1e40af; padding-left:11px; margin:26px 0 10px; }
+  h3 { font-size:14px; color:#3730a3; margin:16px 0 7px; }
+  h4 { font-size:12.5px; color:#1e1b4b; margin:11px 0 5px; }
+  p { margin:5px 0; text-align:justify; }
+  ul, ol { margin:4px 0 4px 17px; } li { margin:2px 0; }
+  table { width:100%; border-collapse:collapse; margin:8px 0; font-size:11.5px; }
+  th { background:#1e40af; color:#fff; padding:6px 8px; text-align:center; font-weight:600; }
+  td { padding:5px 8px; border:1px solid #d1d5db; text-align:center; }
+  tr:nth-child(even) td { background:#f8f9fc; } .tl { text-align:left; }
+  .info-box { background:#eff6ff; border-left:4px solid #1e40af; padding:8px 12px; margin:8px 0; border-radius:0 5px 5px 0; font-size:12px; }
+  .success-box { background:#ecfdf5; border-left:4px solid #10b981; padding:8px 12px; margin:8px 0; border-radius:0 5px 5px 0; font-size:12px; }
+  .warn-box { background:#fffbeb; border-left:4px solid #f59e0b; padding:8px 12px; margin:8px 0; border-radius:0 5px 5px 0; font-size:12px; }
+  .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:10px; font-weight:600; margin:0 1px; }
+  .tag-g { background:#d1fae5; color:#059669; } .tag-b { background:#eef2ff; color:#4f46e5; } .tag-y { background:#fef3c7; color:#d97706; }
+  .code-block { background:#f8fafc; border:1px solid #b0b7c3; padding:10px 14px; border-radius:6px; font-size:11px; line-height:1.7; white-space:pre-wrap; margin:6px 0; font-family:"Consolas","Courier New","Microsoft YaHei",monospace; }
+  .footer-note { margin-top:32px; padding-top:14px; border-top:1px solid #e5e7eb; color:#9ca3af; font-size:10px; text-align:center; line-height:1.8; }
+  kbd { background:#e5e7eb; padding:1px 5px; border-radius:3px; font-size:11px; border:1px solid #d1d5db; }
+  .step-num { display:inline-flex; width:22px; height:22px; background:#1e40af; color:#fff; border-radius:50%; align-items:center; justify-content:center; font-size:11px; font-weight:700; margin-right:6px; flex-shrink:0; }
+</style>
+</head>
+<body>
+<div class="report">
+
+<!-- ==================== 封面 ==================== -->
+<div class="cover">
+  <h1>教师作业批改助手<br>产品说明书</h1>
+  <div class="subtitle">——基于 DeepSeek 大模型的智能批改 AI Agent</div>
+  <div class="meta">
+    <div>产品版本：V3.0 · 发布日期：2026年6月8日</div>
+    <div>适用平台：Web 浏览器（Chrome / Edge / Safari / Firefox）</div>
+    <div>底层模型：DeepSeek Chat API · 设计框架：RCT（角色-上下文-任务）</div>
+  </div>
+</div>
+
+<!-- ==================== 一、产品概述 ==================== -->
+<h2>一、产品概述</h2>
+
+<h3>1.1 产品定位</h3>
+<p>教师作业批改助手是一款<strong>基于 DeepSeek 大模型的智能批改 AI Agent</strong>，面向中小学教师提供多学科作业批改服务。产品将提示词工程的最佳实践（评分规则、评分锚点、错误约束、统一输出包装器）封装为简单易用的 Web 界面，教师无需任何技术背景即可使用。</p>
+
+<h3>1.2 核心价值</h3>
+<table>
+  <tr><th>痛点</th><th>解决方案</th></tr>
+  <tr><td class="tl">批改作业耗时巨大，语文作文每篇需10-15分钟</td><td class="tl">AI 30秒完成批改，教师只需审核确认</td></tr>
+  <tr><td class="tl">评分标准因人而异，缺乏一致性</td><td class="tl">内置标准化评分规则+评分锚点，全校统一标准</td></tr>
+  <tr><td class="tl">评语泛泛而谈，"继续努力"式套话</td><td class="tl">评语强制引用学生原文+给出可操作步骤</td></tr>
+  <tr><td class="tl">数学批改只对答案不看过程</td><td class="tl">逐步骤验证逻辑链，定位具体错误步骤和原因</td></tr>
+  <tr><td class="tl">英语批改只划红线不解释</td><td class="tl">每个错误附中文解释+地道修正+学习建议</td></tr>
+  <tr><td class="tl">全班学情靠经验判断，缺乏数据支撑</td><td class="tl">自动生成含统计表格+分层建议+行动计划的数据报告</td></tr>
+</table>
+
+<h3>1.3 功能一览</h3>
+<table>
+  <tr><th>功能模块</th><th>适用场景</th><th>核心能力</th></tr>
+  <tr><td class="tl">📝 语文读后感批改</td><td class="tl">《背影》等散文读后感</td><td class="tl">四维度评分(35+30+25+10)+扣分项+评语(亮点/待改进/建议)</td></tr>
+  <tr><td class="tl">📐 数学解答题批改</td><td class="tl">中学数学证明题/计算题</td><td class="tl">逐步骤逻辑验证→正误判定→错误步骤定位→正确解法</td></tr>
+  <tr><td class="tl">🔤 英语作文批改</td><td class="tl">非母语者英语作文</td><td class="tl">四类错误(语法/词汇/句式/拼写)分类修正+修改后全文+学习建议</td></tr>
+  <tr><td class="tl">📊 学情分析报告</td><td class="tl">全班作业宏观诊断</td><td class="tl">统计+五维度诊断+共性优劣势+分层建议+教学行动计划表</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ==================== 二、技术架构 ==================== -->
+<h2>二、技术架构</h2>
+
+<h3>2.1 架构图</h3>
+<div class="code-block">┌─────────────────────────────────────────────────┐
+│                 用户浏览器                        │
+│  ┌──────────┐  ┌──────────┐  ┌───────────────┐  │
+│  │ 学科选择  │  │ 变量输入  │  │ 格式化结果展示  │  │
+│  │ (4按钮)  │  │ (文本框)  │  │ (表格+评语)   │  │
+│  └────┬─────┘  └────┬─────┘  └───────┬───────┘  │
+│       └──────────────┼───────────────┘           │
+│                      ▼                            │
+│  ┌─────────────────────────────────────────────┐ │
+│  │         Prompt Builder（JS）                │ │
+│  │  根据学科选择对应模板 → 填入变量 → 组装     │ │
+│  └────────────────────┬───────────────────────┘ │
+│                       ▼                           │
+│  ┌─────────────────────────────────────────────┐ │
+│  │         DeepSeek API 调用                    │ │
+│  │  POST https://api.deepseek.com/chat/...     │ │
+│  │  Authorization: Bearer {API_KEY}            │ │
+│  └────────────────────┬───────────────────────┘ │
+│                       ▼                           │
+│  ┌─────────────────────────────────────────────┐ │
+│  │      统一包装器 → 学科渲染器（JS）           │ │
+│  │  success? → 按 subject 路由到对应渲染函数    │ │
+│  └─────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────┘</div>
+
+<h3>2.2 技术栈</h3>
+<table>
+  <tr><th>层级</th><th>技术</th><th>说明</th></tr>
+  <tr><td class="tl">前端框架</td><td class="tl">纯 HTML5 + CSS3 + Vanilla JS (ES6+)</td><td class="tl">零依赖，单个 HTML 文件即可运行</td></tr>
+  <tr><td class="tl">AI 模型</td><td class="tl">DeepSeek Chat API (deepseek-chat)</td><td class="tl">temperature=0.3，max_tokens=4096</td></tr>
+  <tr><td class="tl">提示词模板</td><td class="tl">RCT 结构模板 × 4（语文/数学/英语/分析）</td><td class="tl">所有模板硬编码在 JS 中，每次调用动态填入变量</td></tr>
+  <tr><td class="tl">输出规范</td><td class="tl">统一包装器（success/data/metadata）</td><td class="tl">所有学科返回相同的最外层 JSON 结构</td></tr>
+  <tr><td class="tl">部署方式</td><td class="tl">GitHub Pages / Vercel / Netlify / 任意静态托管</td><td class="tl">免费、自动 HTTPS、全球 CDN</td></tr>
+</table>
+
+<h3>2.3 API 安全性</h3>
+<div class="warn-box">
+  <strong>安全说明：</strong>API Key 仅存储在用户浏览器的 localStorage 中，不会上传到任何服务器。<strong>所有 API 调用直接从用户浏览器发起</strong>，不经过任何中转。这意味着你的密钥始终在你自己的设备上，不存在被第三方窃取的风险。每次批改仅传输当前作业内容到 DeepSeek 服务器，不保留任何历史数据。
+</div>
+
+<div class="page-break"></div>
+
+<!-- ==================== 三、部署指南 ==================== -->
+<h2>三、部署指南（获取公开访问链接）</h2>
+
+<h3>3.1 方案一：GitHub Pages 部署（推荐 · 免费）</h3>
+
+<div class="info-box"><strong>预计耗时：10分钟 · 费用：完全免费 · 获得链接格式：</strong><code>https://你的用户名.github.io/teacher-agent</code></div>
+
+<table>
+  <tr><th style="width:5%">步骤</th><th style="width:45%">操作</th><th style="width:50%">详细说明</th></tr>
+  <tr>
+    <td><span class="step-num">1</span></td>
+    <td class="tl"><strong>注册 GitHub 账号</strong></td>
+    <td class="tl">访问 <a href="https://github.com">github.com</a> → Sign Up → 填写用户名/邮箱/密码 → 验证邮箱</td>
+  </tr>
+  <tr>
+    <td><span class="step-num">2</span></td>
+    <td class="tl"><strong>创建仓库</strong></td>
+    <td class="tl">登录后点击右上角 "+" → New repository → 仓库名填 <code>teacher-agent</code> → 选择 Public → 勾选 "Add a README file" → Create repository</td>
+  </tr>
+  <tr>
+    <td><span class="step-num">3</span></td>
+    <td class="tl"><strong>上传文件</strong></td>
+    <td class="tl">进入仓库 → Add file → Upload files → 将 <code>index.html</code> 拖入 → 在 Commit message 写 "初始部署" → Commit changes</td>
+  </tr>
+  <tr>
+    <td><span class="step-num">4</span></td>
+    <td class="tl"><strong>启用 GitHub Pages</strong></td>
+    <td class="tl">仓库页 → Settings → Pages → Source 选 "main" 分支 → 文件夹选 "/ (root)" → Save。等待1-2分钟。</td>
+  </tr>
+  <tr>
+    <td><span class="step-num">5</span></td>
+    <td class="tl"><strong>获取公开链接</strong></td>
+    <td class="tl">Settings → Pages 页面顶部会显示 <strong>"Your site is live at https://xxx.github.io/teacher-agent/"</strong> — 这就是你的公开访问链接</td>
+  </tr>
+  <tr>
+    <td><span class="step-num">6</span></td>
+    <td class="tl"><strong>配置 API Key</strong></td>
+    <td class="tl">打开公开链接 → 在左侧输入 DeepSeek API Key → 密钥自动保存在浏览器中 → 开始使用</td>
+  </tr>
+</table>
+
+<h3>3.2 方案二：Vercel 部署（备选 · 免费）</h3>
+<ol>
+  <li>访问 <a href="https://vercel.com">vercel.com</a> → 用 GitHub 账号登录</li>
+  <li>点击 "New Project" → 导入 GitHub 仓库 → 选择 teacher-agent</li>
+  <li>直接点击 Deploy → 等待30秒 → 获得 <code>https://teacher-agent.vercel.app</code> 链接</li>
+</ol>
+
+<h3>3.3 方案三：Netlify 部署（备选 · 免费）</h3>
+<ol>
+  <li>访问 <a href="https://app.netlify.com">app.netlify.com</a> → 用 GitHub 登录</li>
+  <li>点击 "Add new site" → "Import an existing project" → 选择 GitHub 仓库</li>
+  <li>直接 Deploy → 获得 <code>https://xxx.netlify.app</code> 链接</li>
+</ol>
+
+<div class="page-break"></div>
+
+<!-- ==================== 四、使用指南 ==================== -->
+<h2>四、使用指南</h2>
+
+<h3>4.1 首次使用</h3>
+<table>
+  <tr><th style="width:5%">步</th><th>操作</th><th>截图位置参考</th></tr>
+  <tr><td>1</td><td class="tl">打开浏览器访问 Agent 公开链接</td><td class="tl">见封面 —— 左侧为功能面板，右侧为对话区</td></tr>
+  <tr><td>2</td><td class="tl">在左侧 "DeepSeek API Key" 输入框粘贴你的密钥</td><td class="tl">API Key 获取：platform.deepseek.com → API Keys → 创建</td></tr>
+  <tr><td>3</td><td class="tl">选择批改类型（语文/数学/英语/学情分析）</td><td class="tl">点击左侧四个按钮之一，按钮高亮表示已选中</td></tr>
+  <tr><td>4</td><td class="tl">在输入框粘贴学生作业内容</td><td class="tl">数学需额外填写"题目"和"标准答案"</td></tr>
+  <tr><td>5</td><td class="tl">按 <kbd>Ctrl+Enter</kbd> 或点击"提交批改"</td><td class="tl">AI 开始批改，对话区显示加载动画</td></tr>
+  <tr><td>6</td><td class="tl">查看格式化批改结果</td><td class="tl">含评分表格、错误定位、改进建议等</td></tr>
+</table>
+
+<h3>4.2 各学科操作详解</h3>
+
+<h4>📝 语文读后感批改</h4>
+<div class="code-block"><strong>输入：</strong>学生《背影》读后感全文（推荐300-800字）
+<strong>可选：</strong>作文标题、学生姓名
+<strong>输出：</strong>总分(0-100) + 四维度分项得分 + 扣分详情 + 评语(总体评价/亮点/待改进/改进建议)
+<strong>耗时：</strong>约15-30秒</div>
+
+<h4>📐 数学解答题批改</h4>
+<div class="code-block"><strong>必填：</strong>① 题目完整描述 ② 标准答案/关键证明步骤 ③ 学生解答过程
+<strong>可选：</strong>学生姓名
+<strong>输出：</strong>正误判定 + 步骤统计 + 得分率 + 错误步骤定位 + 错误类型 + 错误原因详解 + 完整正确解法
+<strong>耗时：</strong>约20-35秒</div>
+
+<h4>🔤 英语作文批改</h4>
+<div class="code-block"><strong>输入：</strong>学生英语作文全文（推荐80-300词）
+<strong>可选：</strong>作文标题、学生姓名
+<strong>输出：</strong>整体水平等级 + 四类错误统计 + 每个错误的原文/中文解释/修正 + 修改后全文 + 学习建议
+<strong>耗时：</strong>约20-30秒</div>
+
+<h4>📊 学情分析报告</h4>
+<div class="code-block"><strong>输入：</strong>全班多份批改结果的JSON数组（需先用语文模板逐份批改后收集）
+<strong>输出：</strong>Markdown格式的七模块分析报告（统计/诊断/优劣势/分层建议/行动计划）
+<strong>耗时：</strong>约30-45秒</div>
+
+<h3>4.3 快捷键</h3>
+<table>
+  <tr><th>快捷键</th><th>功能</th></tr>
+  <tr><td><kbd>Ctrl + Enter</kbd></td><td>提交批改（输入框中）</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ==================== 五、功能展示 ==================== -->
+<h2>五、核心界面与功能展示</h2>
+
+<h3>5.1 界面布局</h3>
+<table>
+  <tr><th>区域</th><th>位置</th><th>内容</th></tr>
+  <tr><td class="tl">学科选择面板</td><td class="tl">左侧侧边栏</td><td class="tl">📝语文 📐数学 🔤英语 📊学情分析 — 四个按钮；API Key输入框；使用帮助按钮</td></tr>
+  <tr><td class="tl">对话展示区</td><td class="tl">中间主区域</td><td class="tl">欢迎消息 → 用户提交的作业（右侧气泡）→ AI批改结果（左侧气泡，含格式化表格）</td></tr>
+  <tr><td class="tl">输入区域</td><td class="tl">底部</td><td class="tl">作业内容文本框 + 提交按钮；数学模式下额外显示"题目"和"标准答案"输入框</td></tr>
+</table>
+
+<h3>5.2 开场白</h3>
+<div class="info-box">
+  <strong>Agent 启动时自动展示的欢迎消息：</strong><br>
+  "👋 你好！我是教师作业批改助手。我可以帮你批改以下类型的作业：<br>
+  📝 语文读后感 — 基于评分规则的标准化批改（总分+分项得分+评语+改进建议）<br>
+  📐 数学解答题 — 逐步骤逻辑验证（正误判定+错误定位+正确解法）<br>
+  🔤 英语作文 — 语言错误分类修正（语法/词汇/句式/拼写）<br>
+  📊 学情分析报告 — 全班数据洞察（统计+诊断+分层建议）<br>
+  👈 请先在左侧选择批改类型，然后输入作业内容。🔑 首次使用请填写 DeepSeek API Key。"
+</div>
+
+<h3>5.3 批改结果展示示例</h3>
+
+<h4>语文 — 展示格式</h4>
+<div class="code-block">┌─────────────────────────────────────────────┐
+│  📝 语文读后感批改结果                        │
+│                                              │
+│               **86** / 100 分                 │
+│  ┌────────────────┬────────┬───────┐         │
+│  │ 情感理解       │ 24/35  │ ✅80% │         │
+│  │ 文本细读       │ 23/30  │ ✅77% │         │
+│  │ 个人感悟       │ 17/25  │ ⚠️68% │         │
+│  │ 结构逻辑       │ 17/20  │ ✅85% │         │
+│  └────────────────┴────────┴───────┘         │
+│  ⚠️ 扣5分：基础知识小瑕疵                      │
+│                                              │
+│  💬 总体评价：这是一篇非常出色的读后感…        │
+│  🌟 亮点：提出'延时的领悟'概念…               │
+│  🔧 待改进：'联系我自己的经历'过渡可更自然…    │
+│  📋 改进建议：建议将个人经历直接挂接…          │
+└─────────────────────────────────────────────┘</div>
+
+<h4>数学 — 展示格式</h4>
+<div class="code-block">┌─────────────────────────────────────────────┐
+│  📐 数学解答题批改结果                        │
+│                                              │
+│              **65%** 得分率                   │
+│  ❌ 存在错误 | 共6步，正确4步                 │
+│                                              │
+│  🔍 错误详情：                               │
+│  错误步骤：第6步                              │
+│  错误类型：逻辑跳跃                           │
+│  学生写了："等腰三角形的角平分线就是高"       │
+│  为什么错：缺少"顶角"这一关键限定条件…        │
+│  正确做法：引用三线合一性质…                  │
+│                                              │
+│  ✅ 完整正确解法：[完整证明过程]              │
+│  💬 评价：整体思路方向正确…                   │
+└─────────────────────────────────────────────┘</div>
+
+<h4>英语 — 展示格式</h4>
+<div class="code-block">┌─────────────────────────────────────────────┐
+│  🔤 英语作文批改结果                          │
+│  整体水平：Elementary | 错误总数：10          │
+│  ┌────────┬──────┬──────┬──────────┐        │
+│  │ 语法7  │ 词汇2 │ 句式0 │ 拼写标点1│        │
+│  └────────┴──────┴──────┴──────────┘        │
+│                                              │
+│  🔍 错误详情（每个错误一行）：                │
+│  #1 grammar → He work → 三单需works          │
+│  #5 vocabulary → I was touching → 人-ed物-ing│
+│  …（共10条）                                 │
+│                                              │
+│  ✅ 修改后全文：[完整修正后的作文]            │
+│  📋 学习建议：重点练习第三人称单数…           │
+└─────────────────────────────────────────────┘</div>
+
+<div class="page-break"></div>
+
+<!-- ==================== 六、提示词模板 ==================== -->
+<h2>六、内置提示词模板说明</h2>
+
+<p>Agent 内置四套提示词模板，均遵循 RCT（角色-上下文-任务）框架，输出统一包装器 JSON。每套模板的评分规则、输出格式、错误约束均为<strong>固定设计</strong>，仅 <code>{变量}</code> 部分每次替换。</p>
+
+<h3>6.1 模板参数表</h3>
+<table>
+  <tr><th>模板</th><th>变量</th><th>必填</th><th>说明</th></tr>
+  <tr><td class="tl">语文</td><td class="tl">{作业内容} {作文标题} {学生姓名}</td><td class="tl">作业内容必填</td><td class="tl">学生读后感全文</td></tr>
+  <tr><td class="tl">数学</td><td class="tl">{作业内容} {题目} {标准答案} {学生姓名}</td><td class="tl">前三项必填</td><td class="tl">题目+标准答案+学生解答</td></tr>
+  <tr><td class="tl">英语</td><td class="tl">{作业内容} {作文标题} {学生姓名}</td><td class="tl">作业内容必填</td><td class="tl">学生英语作文全文</td></tr>
+  <tr><td class="tl">学情分析</td><td class="tl">{批改结果JSON数组}</td><td class="tl">必填</td><td class="tl">全班批改结果数组</td></tr>
+</table>
+
+<h3>6.2 统一输出包装器</h3>
+<div class="code-block">{
+  "success": true/false,       // 批改是否成功
+  "error_message": null/"…",    // 错误描述（success=false时）
+  "data": { … },               // 学科特定批改结果
+  "metadata": {                 // 元信息
+    "subject": "chinese|math|english|analysis",
+    "timestamp": "2026-06-08T…",
+    "version": "3.0"
+  }
+}</div>
+
+<h3>6.3 错误处理机制</h3>
+<table>
+  <tr><th>错误场景</th><th>Agent 响应</th></tr>
+  <tr><td class="tl">API Key 未填写</td><td class="tl">弹出提示："请先在左侧填写 DeepSeek API Key"</td></tr>
+  <tr><td class="tl">API Key 无效</td><td class="tl">对话区显示："❌ 批改出错 — 请检查 API Key 是否正确"</td></tr>
+  <tr><td class="tl">输入内容为空</td><td class="tl">弹出提示："请输入作业内容"</td></tr>
+  <tr><td class="tl">学科不匹配</td><td class="tl">模型返回 success=false，对话区显示错误原因（如"检测到输入为英语作文，当前为数学批改器"）</td></tr>
+  <tr><td class="tl">JSON 解析失败</td><td class="tl">对话区显示："❌ 批改出错 — 请检查输入内容格式"</td></tr>
+</table>
+
+<div class="page-break"></div>
+
+<!-- ==================== 七、FAQ ==================== -->
+<h2>七、常见问题（FAQ）</h2>
+
+<table>
+  <tr><th>问题</th><th>解答</th></tr>
+  <tr><td class="tl"><strong>如何获取 DeepSeek API Key？</strong></td><td class="tl">访问 <a href="https://platform.deepseek.com">platform.deepseek.com</a> → 注册/登录 → 点击左侧"API Keys" → "创建 API Key" → 复制密钥。新用户通常有免费额度。</td></tr>
+  <tr><td class="tl"><strong>每次批改费用多少？</strong></td><td class="tl">DeepSeek 定价约 ¥1/百万 tokens。单次批改消耗约2000-4000 tokens（含提示词+输出），约¥0.002-0.004/次。批改100篇作文约¥0.2-0.4。</td></tr>
+  <tr><td class="tl"><strong>API Key 是否安全？</strong></td><td class="tl">密钥仅存储在你的浏览器 localStorage 中，不会上传到任何服务器。所有 API 调用直接从你的浏览器发起。如果你部署到 GitHub Pages，请注意仓库必须是 Public 的（免费方案），但 API Key 不在代码中——每个用户在自己的浏览器中输入自己的密钥。</td></tr>
+  <tr><td class="tl"><strong>能否用于其他课文（非《背影》）？</strong></td><td class="tl">语文模板当前专为《背影》读后感优化（评分规则中包含"中国式父爱""爬月台"等特定引用）。如需用于其他课文，需修改评分规则中与原文具体内容相关的描述。数学和英语模板无此限制，可通用。</td></tr>
+  <tr><td class="tl"><strong>支持批量批改吗？</strong></td><td class="tl">当前版本为单次批改模式。如需批量批改，建议使用 API 脚本循环调用（见 §8 开发者接口），或先逐份批改收集结果，再用"学情分析报告"功能进行宏观分析。</td></tr>
+  <tr><td class="tl"><strong>手机能用吗？</strong></td><td class="tl">完全支持。界面采用响应式设计，在手机浏览器中自动适配为单列布局。侧边栏折叠到顶部，对话区和输入区占满屏幕。</td></tr>
+  <tr><td class="tl"><strong>批改不准确怎么办？</strong></td><td class="tl">这是辅助工具，最终评判权在教师手中。如果发现系统性偏差（如总是对某类错误评分偏松），可以调整提示词模板中的评分锚点。模板代码在 index.html 的 <code>PROMPTS</code> 对象中，可直接编辑。</td></tr>
+  <tr><td class="tl"><strong>能否添加更多学科？</strong></td><td class="tl">可以。复制现有模板结构，按照 RCT 框架编写新学科的提示词，然后在 UI 中添加对应的学科按钮和渲染函数即可。</td></tr>
+</table>
+
+<!-- ==================== 八、开发者接口 ==================== -->
+<h2>八、开发者接口（API 脚本调用）</h2>
+
+<p>如需在代码中批量调用批改服务，可直接使用以下 Python 示例：</p>
+<div class="code-block">import requests, json
+
+API_KEY = "sk-your-key-here"
+API_URL = "https://api.deepseek.com/chat/completions"
+
+def grade_essay(essay_text, student_name=""):
+    """语文读后感批改"""
+    prompt = f"""# 角色…(完整提示词模板)…学生作文：{essay_text}"""
+    resp = requests.post(API_URL,
+        headers={"Authorization": f"Bearer {API_KEY}"},
+        json={"model":"deepseek-chat","messages":[{"role":"user","content":prompt}],
+              "temperature":0.3,"max_tokens":4096})
+    raw = resp.json()["choices"][0]["message"]["content"]
+    return json.loads(raw)  # 返回统一包装器JSON
+
+# 使用
+result = grade_essay("读完《背影》后，我挺感动的…", "张三")
+print(f"总分：{result['data']['总分']}")
+print(f"评语：{result['data']['评语']['总体评价']}")</div>
+
+<div class="page-break"></div>
+
+<!-- ==================== 九、版本信息 ==================== -->
+<h2>九、版本信息与更新日志</h2>
+
+<table>
+  <tr><th>版本</th><th>日期</th><th>核心变更</th></tr>
+  <tr><td>V1.0</td><td>2026-06-08</td><td class="tl">语文读后感批改提示词 — 四维度评分+扣分项+评分锚点</td></tr>
+  <tr><td>V2.0</td><td>2026-06-08</td><td class="tl">多学科扩展 — 新增数学、英语模板；参数化变量统一；错误约束条款</td></tr>
+  <tr><td>V3.0</td><td>2026-06-08</td><td class="tl">统一包装器+Web Agent界面 — success/data/metadata标准；GitHub Pages部署；移动端适配</td></tr>
+</table>
+
+<h3>9.1 后续规划</h3>
+<table>
+  <tr><th>功能</th><th>优先级</th><th>预计版本</th></tr>
+  <tr><td class="tl">多份作文批量批改+结果导出CSV</td><td class="tl"><span class="tag tag-y">高</span></td><td>V3.1</td></tr>
+  <tr><td class="tl">批改历史记录保存（localStorage）</td><td class="tl"><span class="tag tag-y">高</span></td><td>V3.1</td></tr>
+  <tr><td class="tl">自定义评分规则（教师可调整权重和锚点）</td><td class="tl"><span class="tag tag-b">中</span></td><td>V3.2</td></tr>
+  <tr><td class="tl">语音输入作业内容</td><td class="tl"><span class="tag tag-b">低</span></td><td>V3.3</td></tr>
+  <tr><td class="tl">更多学科支持（物理/化学/历史）</td><td class="tl"><span class="tag tag-b">中</span></td><td>V4.0</td></tr>
+</table>
+
+<!-- ==================== 附录 ==================== -->
+<h2>附录：文件清单</h2>
+<table>
+  <tr><th>文件</th><th>说明</th><th>大小</th></tr>
+  <tr><td class="tl"><code>agent/index.html</code></td><td class="tl">Agent Web 应用（完整前端，含4套提示词模板+渲染逻辑+API调用）</td><td>约30KB</td></tr>
+  <tr><td class="tl"><code>agent/产品说明书.pdf</code></td><td class="tl">本产品说明书（PDF版）</td><td>约1.5MB</td></tr>
+</table>
+
+<div class="footer-note">
+  <p>《教师作业批改助手 — 产品说明书》 | 2026年6月8日 | V3.0</p>
+  <p>底层模型：DeepSeek Chat API | 设计框架：RCT（角色-上下文-任务）| 输出标准：统一包装器 JSON</p>
+  <p>部署平台：GitHub Pages / Vercel / Netlify | 支持浏览器：Chrome / Edge / Safari / Firefox</p>
+</div>
+
+</div></body></html>
