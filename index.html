@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>教师作业批改助手 — AI Agent</title>
+<style>
+:root {
+  --primary: #4f46e5; --primary-light: #eef2ff; --primary-dark: #3730a3;
+  --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+  --bg: #f0f2f5; --surface: #ffffff; --text: #1a1a2e; --text2: #6b7280; --border: #e5e7eb;
+  --radius: 12px; --radius-sm: 8px; --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; }
+.sidebar { width:280px; background:var(--surface); border-right:1px solid var(--border); padding:20px; display:flex; flex-direction:column; gap:16px; flex-shrink:0; }
+.sidebar-logo { font-size:18px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px; }
+.sidebar-logo span { font-size:24px; }
+.sidebar-desc { font-size:12px; color:var(--text2); line-height:1.6; }
+.subject-group { display:flex; flex-direction:column; gap:6px; }
+.subject-label { font-size:11px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+.subject-btn { display:flex; align-items:center; gap:8px; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); cursor:pointer; font-size:13px; font-weight:600; transition:all .2s; text-align:left; }
+.subject-btn:hover { border-color:var(--primary); background:var(--primary-light); }
+.subject-btn.active { border-color:var(--primary); background:var(--primary-light); color:var(--primary-dark); }
+.subject-btn .icon { font-size:20px; width:28px; text-align:center; flex-shrink:0; }
+.subject-btn .info { font-size:10px; color:var(--text2); font-weight:400; }
+
+.api-section { border-top:1px solid var(--border); padding-top:12px; }
+.api-section label { font-size:11px; font-weight:600; color:var(--text2); display:block; margin-bottom:4px; }
+.api-section input { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-family:monospace; }
+.api-section input:focus { outline:none; border-color:var(--primary); }
+.api-hint { font-size:10px; color:var(--text2); margin-top:4px; }
+
+.main { flex:1; display:flex; flex-direction:column; max-width:calc(100vw - 280px); }
+.header { background:var(--surface); padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.header-title { font-size:16px; font-weight:700; }
+.header-status { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text2); }
+.status-dot { width:8px; height:8px; border-radius:50%; background:var(--success); }
+.status-dot.off { background:var(--border); }
+
+.chat-area { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+.message { display:flex; gap:10px; max-width:90%; animation:fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.message.user { align-self:flex-end; flex-direction:row-reverse; }
+.message.user .bubble { background:var(--primary); color:#fff; }
+.message.agent .bubble { background:var(--surface); border:1px solid var(--border); }
+.avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.message.agent .avatar { background:var(--primary-light); }
+.message.user .avatar { background:#dbeafe; }
+.bubble { padding:12px 16px; border-radius:var(--radius); font-size:13px; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
+.bubble h3 { font-size:14px; margin:8px 0 4px; }
+.bubble table { width:100%; border-collapse:collapse; margin:8px 0; font-size:12px; }
+.bubble th { background:var(--primary); color:#fff; padding:6px 8px; }
+.bubble td { padding:6px 8px; border:1px solid var(--border); }
+.bubble .score-big { font-size:32px; font-weight:700; color:var(--primary); }
+.bubble .tag { display:inline-block; padding:2px 6px; border-radius:4px; font-size:10px; font-weight:600; margin:1px; }
+.tag-ok { background:#d1fae5; color:#059669; } .tag-warn { background:#fef3c7; color:#d97706; } .tag-err { background:#fee2e2; color:#dc2626; }
+
+.input-area { background:var(--surface); border-top:1px solid var(--border); padding:16px 24px; }
+.input-form { display:flex; flex-direction:column; gap:10px; }
+.input-row { display:flex; gap:8px; }
+.input-row textarea { flex:1; padding:10px 14px; border:2px solid var(--border); border-radius:var(--radius); font-size:13px; font-family:inherit; resize:none; min-height:60px; max-height:160px; line-height:1.6; }
+.input-row textarea:focus { outline:none; border-color:var(--primary); }
+.extra-fields { display:flex; gap:8px; flex-wrap:wrap; }
+.extra-fields input { flex:1; min-width:150px; padding:8px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; }
+.extra-fields input:focus { outline:none; border-color:var(--primary); }
+.btn { padding:10px 20px; border:none; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; white-space:nowrap; }
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+.btn-outline { background:var(--surface); border:2px solid var(--border); color:var(--text); }
+.btn-outline:hover { border-color:var(--primary); }
+.btn-sm { padding:6px 12px; font-size:11px; }
+
+.empty-hint { text-align:center; color:var(--text2); padding:40px 20px; }
+.empty-hint .big-icon { font-size:48px; margin-bottom:12px; }
+.empty-hint h3 { font-size:15px; margin-bottom:6px; color:var(--text); }
+.empty-hint p { font-size:12px; line-height:1.8; max-width:400px; margin:0 auto; }
+
+.loading { display:flex; align-items:center; gap:8px; padding:12px; color:var(--text2); font-size:12px; }
+.loading .dots { display:flex; gap:4px; }
+.loading .dots span { width:6px; height:6px; border-radius:50%; background:var(--primary); animation:bounce 1.4s infinite ease-in-out both; }
+.loading .dots span:nth-child(1){animation-delay:-.32s} .loading .dots span:nth-child(2){animation-delay:-.16s}
+@keyframes bounce { 0%,80%,100%{transform:scale(0)}40%{transform:scale(1)} }
+
+@media (max-width:768px) {
+  body { flex-direction:column; }
+  .sidebar { width:100%; flex-direction:row; flex-wrap:wrap; padding:12px; gap:8px; }
+  .sidebar-logo { font-size:14px; } .sidebar-desc { display:none; }
+  .subject-group { flex-direction:row; } .subject-btn { font-size:11px; padding:8px 10px; } .subject-btn .info { display:none; }
+  .api-section { display:none; }
+  .main { max-width:100%; }
+  .input-row { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo"><span>📚</span>教师作业批改助手</div>
+  <div class="sidebar-desc">基于 DeepSeek 大模型的智能批改 Agent。支持语文/数学/英语作业批改 + 学情分析报告生成。</div>
+
+  <div class="subject-label">📂 选择批改类型</div>
+  <div class="subject-group" id="subjectGroup">
+    <button class="subject-btn active" data-subject="chinese"><span class="icon">📝</span>语文读后感<span class="info">评分+评语</span></button>
+    <button class="subject-btn" data-subject="math"><span class="icon">📐</span>数学解答题<span class="info">逐步骤验证</span></button>
+    <button class="subject-btn" data-subject="english"><span class="icon">🔤</span>英语作文<span class="info">语言错误分类</span></button>
+    <button class="subject-btn" data-subject="analysis"><span class="icon">📊</span>学情分析报告<span class="info">全班数据洞察</span></button>
+  </div>
+
+  <div class="api-section">
+    <label>🔑 DeepSeek API Key</label>
+    <input type="password" id="apiKey" placeholder="sk-xxxxxxxxxxxxxxxx">
+    <div class="api-hint">密钥仅保存在你的浏览器本地</div>
+  </div>
+
+  <button class="btn btn-outline btn-sm" onclick="showHelp()" style="width:100%">💡 使用帮助</button>
+  <button class="btn btn-outline btn-sm" onclick="clearChat()" style="width:100%">🗑️ 清空对话</button>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="header">
+    <div class="header-title" id="headerTitle">📝 语文读后感批改</div>
+    <div class="header-status"><span class="status-dot" id="statusDot"></span><span id="statusText">就绪</span></div>
+  </div>
+
+  <div class="chat-area" id="chatArea">
+    <!-- Welcome message -->
+    <div class="message agent" id="welcomeMsg">
+      <div class="avatar">🤖</div>
+      <div class="bubble">
+        <strong>👋 你好！我是教师作业批改助手</strong><br><br>
+        我可以帮你批改以下类型的作业：<br>
+        📝 <strong>语文读后感</strong> — 基于评分规则的标准化批改（总分+分项得分+评语+改进建议）<br>
+        📐 <strong>数学解答题</strong> — 逐步骤逻辑验证（正误判定+错误定位+正确解法）<br>
+        🔤 <strong>英语作文</strong> — 语言错误分类修正（语法/词汇/句式/拼写）<br>
+        📊 <strong>学情分析报告</strong> — 全班数据洞察（统计+诊断+分层建议）<br><br>
+        <em>👈 请先在左侧选择批改类型，然后输入作业内容。</em><br>
+        <em>🔑 首次使用请填写 DeepSeek API Key。</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-form" id="inputForm">
+      <div class="input-row">
+        <textarea id="homeworkInput" placeholder="请在此粘贴学生作业内容…" rows="2"></textarea>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitHomework()">📤 提交批改</button>
+      </div>
+      <div class="extra-fields" id="extraFields" style="display:none"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ==================== STATE ====================
+const DEEPSEEK_API = 'https://api.deepseek.com/chat/completions';
+let currentSubject = 'chinese';
+
+// ==================== PROMPT TEMPLATES ====================
+const PROMPTS = {
+  chinese: (vars) => `# 角色
+你是一位具有20年教龄的资深中学语文教师，专精于散文教学与作文批改。评语必须引用学生作文中的具体语句。注意：这是读后感文体——若全文无一处对原文的具体引用，"文本细读与论据支撑"维度不得超过15分。
+
+# 上下文
+作文标题：${vars.title||'未命名'} | 学生姓名：${vars.student||'未署名'} | 批改日期：${new Date().toISOString().slice(0,10)}
+【评分规则】（总分100分）：
+1. 情感理解与主旨把握（35分）：是否准确理解《背影》情感内核——父子间深沉内敛、以行动替代言语的"中国式父爱"；是否注意到情感的复杂性。
+2. 文本细读与论据支撑（30分）：是否引用原文具体语句或细节并进行了有效分析。
+3. 个人感悟与延伸反思（25分）：是否有真实的个人感悟且与原文有实质性关联和深度。
+4. 结构与逻辑（10分）：结构是否清晰完整，有无逻辑主线。
+【扣分规则】：口语化表达扣1-5分(不设豁免阈值)；事实性错误扣5-10分；篇幅＜200字扣3-5分。
+【评分锚点】：情感理解30-35=精准有深度/20-29=正确不够深入/10-19=表面理解/0-9=偏差；文本细读26-30=多处精准引用+透彻分析/16-25=有引用分析较浅/6-15=偶有提及/0-5=无引用；个人感悟21-25=深层共鸣新洞察/11-20=有感悟深度一般/5-10=感悟泛化/0-4=无感悟；结构8-10=结构清晰有主线/5-7=可辨识三段式/3-4=松散/0-2=无结构。
+
+# 任务 — 学生作文：
+${vars.content}
+
+# 输出要求（最高优先级）
+1. 只输出JSON，以{开头、}结尾，严禁前缀后缀
+2. 若输入明显不是语文作文→success=false
+3. JSON语法绝对正确：双引号、无尾逗号、布尔/null/数字格式正确
+4. 数值一致性：分项得分之和-扣分分值=总分
+
+{
+  "success": true, "error_message": null,
+  "data": {
+    "总分": <数字>,
+    "分项得分": {"情感理解与主旨把握":<数字>,"文本细读与论据支撑":<数字>,"个人感悟与延伸反思":<数字>,"结构与逻辑":<数字>},
+    "扣分项": {"是否扣分":<true/false>,"扣分原因":"...","扣分分值":<数字>},
+    "评语": {"总体评价":"100-180字，引用学生原文","亮点":["...原文语句..."],"待改进":["...原文语句..."],"改进建议":"60-120字可操作步骤"}
+  },
+  "metadata": {"subject":"chinese","timestamp":"${new Date().toISOString()}","version":"3.0","student_name":"${vars.student||'未署名'}"}
+}`,
+
+  math: (vars) => `# 角色
+你是一位严谨的中学数学老师，拥有15年教学和阅卷经验。逐行审阅推导过程，关注逻辑依据、定理应用准确性、计算无误、推理链完整。不会因答案对而忽视过程错。
+
+# 上下文
+题目：${vars.problem||'未提供'}
+标准答案（关键证明步骤）：${vars.answer||'未提供'}
+学生姓名：${vars.student||'未署名'} | 批改日期：${new Date().toISOString().slice(0,10)}
+批改规则：逐步骤检查；步骤对答案错→找错误步骤；答案对过程错→判定错误；跳步→"逻辑跳跃"；定理误用→"定理应用条件错误"；计算错误→标注正确值。
+
+# 任务 — 学生解答：
+${vars.content}
+
+# 输出要求 [最高优先级——同语文模板]
+{
+  "success": true, "error_message": null,
+  "data": {
+    "is_correct": <true/false>, "total_steps": <数字>, "correct_steps": <数字>,
+    "score_percentage": "<X%>",
+    "error_step": "<第X步，正确则填'无'>",
+    "error_type": "<定理应用错误/计算错误/逻辑跳跃/概念混淆/审题错误/无>",
+    "error_detail": {"student_wrote":"<原文>","why_wrong":"<数学解释>","correct_approach":"<正确做法>"},
+    "full_correct_solution": "<完整正确解答>",
+    "comments": "<80-150字总体评价>"
+  },
+  "metadata": {"subject":"math","timestamp":"${new Date().toISOString()}","version":"3.0","student_name":"${vars.student||'未署名'}"}
+}`,
+
+  english: (vars) => `# 角色
+你是Native English Writing Instructor，10年ESL教学经验。精准定位每个语言错误，用中文解释"为什么错"，提供地道修改方案。
+
+# 上下文
+作文标题：${vars.title||'未命名'} | 学生姓名：${vars.student||'未署名'} | 批改日期：${new Date().toISOString().slice(0,10)}
+批改五维度：1.语法准确性(时态/主谓一致/冠词/介词/从句) 2.词汇恰当性(选词/搭配/中式英语) 3.句式多样性(流水句/残缺句) 4.拼写与标点 5.衔接与连贯
+
+# 任务 — 学生作文：
+${vars.content}
+
+# 输出要求 [最高优先级——同语文模板]
+{
+  "success": true, "error_message": null,
+  "data": {
+    "overall_level": "<Beginner/Elementary/Intermediate/Upper-Intermediate/Advanced>",
+    "total_errors": <数字>,
+    "error_breakdown": {"grammar":<数字>,"vocabulary":<数字>,"sentence_structure":<数字>,"spelling_punctuation":<数字>},
+    "errors": [{"id":<数字>,"type":"<类型>","original":"<原文>","explanation":"<中文解释>","correction":"<修正>"}],
+    "strengths": ["<优点>"],
+    "revised_essay": "<完整修改后作文>",
+    "learning_tips": ["<建议>"]
+  },
+  "metadata": {"subject":"english","timestamp":"${new Date().toISOString()}","version":"3.0","student_name":"${vars.student||'未署名'}"}
+}`,
+
+  analysis: (vars) => `# 角色
+你是一位资深教学分析师，从批量作业数据中提炼教学洞察，制定精准改进策略。
+
+# 上下文
+以下是全班学生《背影》读后感的批改结果（JSON数组）：
+${vars.content}
+
+# 任务
+综合分析以上数据，生成《学情分析报告》，含：1.整体概况 2.五维度分项诊断 3.共性优势 4.共性问题 5.分层教学建议(A/B/C三层) 6.下阶段教学重点 7.教学行动计划表。每条分析引用具体学生案例和数据支撑，字数2000-3000。
+
+# 输出要求 [最高优先级]
+{
+  "success": true, "error_message": null,
+  "data": {
+    "report_title": "《背影》读后感 — 班级学情分析报告",
+    "report": "<完整Markdown格式报告(多行字符串，\\n换行)>",
+    "summary": {"平均分":<数字>,"最高分":<数字>,"最低分":<数字>,"标准差":<数字>,"总人数":<数字>}
+  },
+  "metadata": {"subject":"analysis","timestamp":"${new Date().toISOString()}","version":"3.0"}
+}`
+};
+
+// ==================== UI HELPERS ====================
+const $ = s => document.querySelector(s);
+const chatArea = $('#chatArea');
+const homeworkInput = $('#homeworkInput');
+const submitBtn = $('#submitBtn');
+const extraFields = $('#extraFields');
+
+function addMessage(role, html) {
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.innerHTML = `<div class="avatar">${role==='agent'?'🤖':'👤'}</div><div class="bubble">${html}</div>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+  return div;
+}
+
+function addLoading() {
+  const div = document.createElement('div');
+  div.className = 'message agent';
+  div.id = 'loadingMsg';
+  div.innerHTML = `<div class="avatar">🤖</div><div class="bubble"><div class="loading">正在批改中<div class="dots"><span></span><span></span><span></span></div></div></div>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function removeLoading() {
+  const el = document.getElementById('loadingMsg');
+  if (el) el.remove();
+}
+
+function setStatus(ok, text) {
+  $('#statusDot').className = `status-dot${ok?'':' off'}`;
+  $('#statusText').textContent = text;
+}
+
+// ==================== RESULT RENDERERS ====================
+function renderChineseResult(data) {
+  const d = data.data;
+  const dims = d.分项得分;
+  const kf = d.扣分项;
+  const py = d.评语;
+  const dimNames = { '情感理解与主旨把握':'情感理解','文本细读与论据支撑':'文本细读','个人感悟与延伸反思':'个人感悟','结构与逻辑':'结构逻辑' };
+
+  let dimsHtml = Object.entries(dims).map(([k,v]) => {
+    const max = k.includes('结构')?10:k.includes('感悟')?25:k.includes('细读')?30:35;
+    const pct = Math.round(v/max*100);
+    const color = pct>=80?'tag-ok':pct>=50?'tag-warn':'tag-err';
+    return `<tr><td style="text-align:left">${dimNames[k]||k}</td><td>${v}/${max}</td><td><span class="tag ${color}">${pct}%</span></td></tr>`;
+  }).join('');
+
+  let kfHtml = kf.是否扣分 ? `<p>⚠️ <strong>扣${kf.扣分分值}分</strong>：${kf.扣分原因}</p>` : '<p>✅ 无扣分项</p>';
+
+  let highlights = py.亮点.map(h=>`<li>✅ ${h}</li>`).join('');
+  let issues = py.待改进.map(i=>`<li>📌 ${i}</li>`).join('');
+
+  return `
+    <h3>📝 语文读后感批改结果</h3>
+    <div style="text-align:center;margin:12px 0"><span class="score-big">${d.总分}</span><span style="color:var(--text2)"> / 100 分</span></div>
+    <table>${dimsHtml}</table>
+    ${kfHtml}
+    <h4>💬 总体评价</h4><p>${py.总体评价}</p>
+    <h4>🌟 亮点</h4><ul>${highlights}</ul>
+    <h4>🔧 待改进</h4><ul>${issues}</ul>
+    <h4>📋 改进建议</h4><p>${py.改进建议}</p>
+  `;
+}
+
+function renderMathResult(data) {
+  const d = data.data;
+  const correctIcon = d.is_correct ? '✅ 解答正确' : '❌ 存在错误';
+  let errHtml = '';
+  if (!d.is_correct && d.error_detail) {
+    errHtml = `
+      <h4>🔍 错误详情</h4>
+      <table>
+        <tr><td style="text-align:left;font-weight:600">错误步骤</td><td style="text-align:left">${d.error_step}</td></tr>
+        <tr><td style="text-align:left;font-weight:600">错误类型</td><td style="text-align:left"><span class="tag tag-err">${d.error_type}</span></td></tr>
+        <tr><td style="text-align:left;font-weight:600">学生写了</td><td style="text-align:left">${d.error_detail.student_wrote}</td></tr>
+        <tr><td style="text-align:left;font-weight:600">为什么错</td><td style="text-align:left">${d.error_detail.why_wrong}</td></tr>
+        <tr><td style="text-align:left;font-weight:600">正确做法</td><td style="text-align:left">${d.error_detail.correct_approach}</td></tr>
+      </table>`;
+  }
+  return `
+    <h3>📐 数学解答题批改结果</h3>
+    <div style="text-align:center;margin:12px 0"><span class="score-big">${d.score_percentage}</span><span style="color:var(--text2)"> 得分率</span></div>
+    <p><strong>${correctIcon}</strong> | 共${d.total_steps}步，正确${d.correct_steps}步</p>
+    ${errHtml}
+    <h4>✅ 完整正确解法</h4><pre style="background:#f8fafc;border:1px solid var(--border);padding:12px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap">${d.full_correct_solution}</pre>
+    <h4>💬 评价</h4><p>${d.comments}</p>
+  `;
+}
+
+function renderEnglishResult(data) {
+  const d = data.data;
+  const eb = d.error_breakdown;
+  let errList = d.errors.map(e=>`
+    <tr>
+      <td>#${e.id}</td>
+      <td><span class="tag ${e.type==='grammar'?'tag-err':e.type==='vocabulary'?'tag-warn':'tag-ok'}">${e.type}</span></td>
+      <td style="text-align:left"><del style="color:var(--danger)">${e.original}</del></td>
+      <td style="text-align:left">${e.explanation}</td>
+      <td style="text-align:left;color:var(--success)"><strong>${e.correction}</strong></td>
+    </tr>`).join('');
+
+  let tips = d.learning_tips.map(t=>`<li>💡 ${t}</li>`).join('');
+  let strengths = d.strengths.map(s=>`<li>🌟 ${s}</li>`).join('');
+
+  return `
+    <h3>🔤 英语作文批改结果</h3>
+    <p><strong>整体水平：</strong><span class="tag tag-warn">${d.overall_level}</span> | <strong>错误总数：</strong>${d.total_errors}</p>
+    <table>
+      <tr><th>语法</th><th>词汇</th><th>句式</th><th>拼写/标点</th></tr>
+      <tr><td>${eb.grammar}</td><td>${eb.vocabulary}</td><td>${eb.sentence_structure}</td><td>${eb.spelling_punctuation}</td></tr>
+    </table>
+    <h4>🔍 错误详情</h4>
+    <table style="font-size:11px"><tr><th>#</th><th>类型</th><th>原文</th><th>解释</th><th>修正</th></tr>${errList}</table>
+    <h4>🌟 优点</h4><ul>${strengths}</ul>
+    <h4>✅ 修改后全文</h4><pre style="background:#f8fafc;border:1px solid var(--border);padding:12px;border-radius:8px;font-size:12px;line-height:1.7;white-space:pre-wrap">${d.revised_essay}</pre>
+    <h4>📋 学习建议</h4><ul>${tips}</ul>
+  `;
+}
+
+function renderAnalysisResult(data) {
+  const d = data.data;
+  const s = d.summary;
+  let reportHtml = d.report
+    .replace(/^# (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+    .replace(/^### (.+)$/gm, '<h5>$1</h5>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n- /g, '\n<li>')
+    .replace(/\|(.+)\|/g, (m) => { /* basic table support */ return m; });
+
+  return `
+    <h3>📊 学情分析报告</h3>
+    <table>
+      <tr><th>平均分</th><th>最高分</th><th>最低分</th><th>标准差</th><th>总人数</th></tr>
+      <tr><td><strong>${s.平均分}</strong></td><td>${s.最高分}</td><td>${s.最低分}</td><td>${s.标准差}</td><td>${s.总人数}</td></tr>
+    </table>
+    <div style="background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-top:12px;font-size:12px;line-height:1.8;white-space:pre-wrap">${d.report}</div>
+  `;
+}
+
+// ==================== API CALL ====================
+async function callDeepSeek(prompt) {
+  const apiKey = $('#apiKey').value.trim();
+  if (!apiKey) throw new Error('请先在左侧填写 DeepSeek API Key');
+
+  const resp = await fetch(DEEPSEEK_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 4096
+    })
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(()=>({}));
+    throw new Error(err.error?.message || `API请求失败 (HTTP ${resp.status})`);
+  }
+
+  const data = await resp.json();
+  return data.choices[0].message.content;
+}
+
+// ==================== MAIN LOGIC ====================
+async function submitHomework() {
+  const content = homeworkInput.value.trim();
+  if (!content) { alert('请输入作业内容'); return; }
+
+  const apiKey = $('#apiKey').value.trim();
+  if (!apiKey) { alert('请先在左侧填写 DeepSeek API Key'); return; }
+
+  // Show user message
+  const shortPreview = content.length > 100 ? content.slice(0,100)+'…' : content;
+  addMessage('user', `<strong>${currentSubject==='chinese'?'📝 语文':currentSubject==='math'?'📐 数学':currentSubject==='english'?'🔤 英语':'📊 学情分析'}</strong><br>${shortPreview.replace(/\n/g,'<br>')}`);
+
+  // Gather variables
+  const vars = { content };
+  if (currentSubject === 'math') {
+    vars.problem = $('#mathProblem')?.value?.trim() || '';
+    vars.answer = $('#mathAnswer')?.value?.trim() || '';
+    if (!vars.problem) { alert('数学批改需要填写"题目"'); return; }
+    if (!vars.answer) { alert('数学批改需要填写"标准答案/关键步骤"'); return; }
+  }
+  vars.title = $('#essayTitle')?.value?.trim() || '';
+  vars.student = $('#studentName')?.value?.trim() || '';
+
+  // Show loading
+  addLoading();
+  submitBtn.disabled = true;
+  setStatus(false, '批改中…');
+
+  try {
+    const prompt = PROMPTS[currentSubject](vars);
+    const raw = await callDeepSeek(prompt);
+
+    // Parse JSON — strip potential markdown fences
+    let jsonStr = raw.trim();
+    if (jsonStr.startsWith('```')) {
+      jsonStr = jsonStr.replace(/^```(?:json)?\s*/,'').replace(/\s*```$/,'');
+    }
+    const result = JSON.parse(jsonStr);
+
+    removeLoading();
+
+    if (!result.success) {
+      addMessage('agent', `⚠️ <strong>批改失败</strong><br><br>${result.error_message||'未知错误'}`);
+    } else {
+      // Render based on subject
+      let html;
+      switch (currentSubject) {
+        case 'chinese': html = renderChineseResult(result); break;
+        case 'math': html = renderMathResult(result); break;
+        case 'english': html = renderEnglishResult(result); break;
+        case 'analysis': html = renderAnalysisResult(result); break;
+        default: html = `<pre>${JSON.stringify(result.data,null,2)}</pre>`;
+      }
+      addMessage('agent', html);
+    }
+    setStatus(true, '就绪');
+  } catch (err) {
+    removeLoading();
+    addMessage('agent', `❌ <strong>批改出错</strong><br><br>${err.message}<br><br><em>请检查：① API Key是否正确 ② 网络连接 ③ 输入内容格式</em>`);
+    setStatus(true, '错误');
+  }
+
+  submitBtn.disabled = false;
+  homeworkInput.value = '';
+  homeworkInput.focus();
+}
+
+// Enter key to submit (Ctrl+Enter)
+homeworkInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    submitHomework();
+  }
+});
+
+// ==================== SUBJECT SWITCHING ====================
+function switchSubject(subject) {
+  currentSubject = subject;
+  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-subject="${subject}"]`).classList.add('active');
+
+  const titles = { chinese:'📝 语文读后感批改', math:'📐 数学解答题批改', english:'🔤 英语作文批改', analysis:'📊 学情分析报告' };
+  $('#headerTitle').textContent = titles[subject];
+
+  const placeholders = {
+    chinese: '请在此粘贴学生《背影》读后感…\n(Ctrl+Enter 提交)',
+    math: '请在此粘贴学生数学解答过程…\n(Ctrl+Enter 提交)',
+    english: '请在此粘贴学生英语作文…\n(Ctrl+Enter 提交)',
+    analysis: '请在此粘贴全班批改结果JSON数组…\n(Ctrl+Enter 提交)'
+  };
+  homeworkInput.placeholder = placeholders[subject];
+  homeworkInput.rows = subject === 'analysis' ? 4 : 2;
+
+  // Extra fields for math
+  extraFields.innerHTML = '';
+  extraFields.style.display = 'none';
+  if (subject === 'math') {
+    extraFields.style.display = 'flex';
+    extraFields.innerHTML = `
+      <input type="text" id="mathProblem" placeholder="📐 题目（必填）— 如：已知△ABC中AB=AC…">
+      <input type="text" id="mathAnswer" placeholder="✅ 标准答案/关键步骤（必填）">
+      <input type="text" id="studentName" placeholder="👤 学生姓名（可选）">
+    `;
+  } else if (subject === 'chinese' || subject === 'english') {
+    extraFields.style.display = 'flex';
+    extraFields.innerHTML = `
+      <input type="text" id="essayTitle" placeholder="📋 作文标题（可选）">
+      <input type="text" id="studentName" placeholder="👤 学生姓名（可选）">
+    `;
+  }
+}
+
+document.getElementById('subjectGroup').addEventListener('click', e => {
+  const btn = e.target.closest('.subject-btn');
+  if (btn) switchSubject(btn.dataset.subject);
+});
+
+// ==================== HELP ====================
+function showHelp() {
+  addMessage('agent', `
+    <h3>💡 使用帮助</h3>
+    <p><strong>1. 配置 API Key</strong><br>在左侧输入你的 DeepSeek API Key（<a href="https://platform.deepseek.com/api_keys" target="_blank">获取地址</a>）。密钥仅保存在浏览器本地。</p>
+    <p><strong>2. 选择批改类型</strong><br>点击左侧学科按钮切换：📝语文读后感 / 📐数学解答题 / 🔤英语作文 / 📊学情分析。</p>
+    <p><strong>3. 输入作业内容</strong><br>将学生作业粘贴到输入框，按 <kbd>Ctrl+Enter</kbd> 提交。数学需额外填写"题目"和"标准答案"。</p>
+    <p><strong>4. 查看结果</strong><br>AI会自动批改并以格式化方式展示——含评分、错误定位、改进建议等。</p>
+    <p><strong>5. 学情分析</strong><br>切换到"学情分析报告"模式，粘贴全班多份批改结果JSON数组，即可生成宏观分析报告。</p>
+    <hr>
+    <p><strong>🔑 API Key 获取步骤：</strong><br>① 访问 <a href="https://platform.deepseek.com" target="_blank">platform.deepseek.com</a> 注册登录<br>② 进入 "API Keys" 页面<br>③ 点击 "创建 API Key"，复制密钥<br>④ 粘贴到左侧输入框</p>
+    <p><strong>💰 费用说明：</strong>DeepSeek API 按token计费，单次批改约消耗2000-4000 tokens，费用极低（约¥0.002-0.004/次）。</p>
+  `);
+}
+
+function clearChat() {
+  chatArea.innerHTML = '';
+  addMessage('agent', '对话已清空。请选择批改类型并输入作业内容。');
+}
+
+// ==================== INIT ====================
+switchSubject('chinese');
+
+// Save/load API key
+$('#apiKey').addEventListener('change', function() {
+  localStorage.setItem('deepseek_api_key', this.value);
+});
+const savedKey = localStorage.getItem('deepseek_api_key');
+if (savedKey) $('#apiKey').value = savedKey;
+</script>
+</body>
+</html>
